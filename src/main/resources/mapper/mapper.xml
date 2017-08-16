@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?> <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Board">
+	<select id = "getSearchListCount" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select count(*) from jboard where ${value}
+	</select>
+	<select id="getListCount" resultType="java.lang.Integer">
+		select count(*) from jboard
+	</select>
+	<select id="getMaxCount" resultType="java.lang.Integer">
+		select max(num) from jboard
+	</select>
+	<select id="getBoardList" parameterType="java.util.Map" resultType="han.com.board.model.BoardDTO">
+		<![CDATA[ 
+		select * from
+  			(select rownum rnum, num, name, subject, content, attached_file, answer_num, answer_lev, answer_seq, read_count, write_date from
+    			(select * from jboard order by answer_num desc,answer_seq asc)
+ 			)
+		where rnum>=#{startrow} and rnum<=#{endrow} order by num desc
+		]]>
+	</select>
+	<insert id="boardInsert" parameterType="han.com.board.model.BoardDTO">
+		insert into jboard (num,name,pass,subject,content,attached_file,
+		answer_num,answer_lev,answer_seq,read_count,write_date)
+		values(board_seq.nextval,#{name},#{pass},#{subject},#{content},#{attached_file},#{num},0,0,0,sysdate)
+	</insert>
+	<select id = "getDetail" parameterType="han.com.board.model.BoardDTO" resultType="han.com.board.model.BoardDTO">
+		select * from jboard
+		where num = #{num}
+	</select>
+	<update id="setReadCountUpdate" parameterType="han.com.board.model.BoardDTO">
+		update jboard set read_count = read_count+1 where num = #{num}
+	</update>
+	<update id="boardModify" parameterType="han.com.board.model.BoardDTO">
+		update jboard set name=#{name}, subject=#{subject},content=#{content},attached_file=#{attached_file}
+		where num=#{num}
+	</update>
+	<select id="isBoardWriter" parameterType="java.util.Map" resultType="han.com.board.model.BoardDTO">
+		select * from jboard where num=#{num} and pass=#{pass}
+	</select>
+	<select id = "getMaxNum" resultType = "java.lang.Integer">
+		select max(num) from jboard
+	</select>
+	<update id="boardReplyUpdate" parameterType="han.com.board.model.BoardDTO">
+		update jboard set answer_seq=answer_seq+1
+		where answer_num=#{answer_num} and answer_seq>#{answer_seq}
+	</update>
+	<insert id = "boardReply" parameterType="han.com.board.model.BoardDTO">
+		insert into jboard (num,name,pass,subject,content,attached_file, answer_num,answer_lev,answer_seq,read_count,write_date)
+		values(#{num},#{name},#{pass},#{subject},#{content},#{attached_file},#{answer_num},#{answer_lev},#{answer_seq},0,sysdate)
+	</insert>
+	<select id = "getSearchList" parameterType="java.util.Map" resultType="han.com.board.model.BoardDTO">
+		<![CDATA[ 
+		select * from (select rownum rnum,num,name,subject,content, attached_file,answer_num,answer_lev,answer_seq,read_count,write_date
+		from
+			(select * from jboard order by answer_num desc, answer_seq asc)
+			where ${searchCall})
+		where rnum>=${startrow} and rnum<=${endrow}
+		]]>
+	</select>
+	
+	<delete id="boardDelete" parameterType="han.com.board.model.BoardDTO">
+		delete from jboard where num=#{num}
+	</delete>
+</mapper>
